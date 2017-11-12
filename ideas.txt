@@ -1,0 +1,49 @@
+you are a ghost: a woman who died of grief because her husband and lord disappeared at war/dragon slaying
+you come back to find out what happened
+
+mechanics
+you cannot interact with the world yourself, you need to take possession of NPC
+your power level tells you what NPC you can take possession of/what you can get them to do
+	your power > NPC power to possess him and get him to do "ethic" things 
+	your power > NPM power * factor to get him to do something against its ethics
+	temporary boosts of power?
+quests can be done as specific character, but more complex quests will require to possess several characters
+quests -> XP -> raise power (power = level, more or less)
+how can you lose?
+	- energy level get depleted? How is that linked to power?
+	- sanity? for a ghost?
+	- despair/hope
+NPC have inventory so they can carry quest items
+can you cross walls? Maybe walls have power too...
+
+
+
+locations
+castle
+	bedroom where you died
+	throne room
+	command room
+	kitchen
+	councellor wizard room
+	armory
+	guard room
+	cellar
+village
+
+...
+
+characters
+	councellor wizard
+	weapon master
+	cook
+	guards
+	maid
+...
+
+story
+	start in cellar, not enough power to go through door
+		possess mouse -> hole -> next room
+	when died, with wizard and maid -> possess maid to open door
+	get information on where husband went -> should lead to somebody in village	
+	go outside castle: need to be strong enough to go through wall or get guard to open the door, need to know who to talk to in the village
+
