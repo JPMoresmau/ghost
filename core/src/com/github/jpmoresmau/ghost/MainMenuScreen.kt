@@ -98,7 +98,7 @@ class MainMenuScreen (private val handle: GhostHandle) : Screen {
     }
 
     override fun resume() {
-
+        handle.mainMenuMusic.play()
     }
 
     override fun hide() {

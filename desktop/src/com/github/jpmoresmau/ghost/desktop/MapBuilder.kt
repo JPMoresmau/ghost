@@ -9,19 +9,20 @@ import org.xml.sax.helpers.XMLReaderFactory
 import java.io.*
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import java.util.stream.Collectors
 
 /**
  * Created by jpmoresmau on 12/11/2017.
  */
 fun main(args: Array<String>) {
-    val tileIDs = HashSet<String>()
+    val tileIDs = HashSet<Int>()
 
     tileIDs.addAll(loadMap("../../../tiled/castle1.tmx","maps/castle1.tmx"))
 
     loadTileSet("../../../tiled/crawl.tsx","maps/crawl.tsx",tileIDs)
 }
 
-fun loadMap(map : String,dest : String) : Set<String>{
+fun loadMap(map : String,dest : String) : Set<Int>{
     val inputMap = File(map)
     if (!inputMap.exists()) {
         throw IllegalArgumentException("Map ${inputMap.absolutePath} does not exist")
@@ -35,12 +36,13 @@ fun loadMap(map : String,dest : String) : Set<String>{
         val mh= MapHandler()
         xmlR.contentHandler = mh
         xmlR.parse(InputSource(destFile.canonicalPath))
+        println(mh.tileIDs)
         return mh.tileIDs
     }
 
 }
 
-fun loadTileSet(tileset : String,dest : String, tileIDs : Set<String>) {
+fun loadTileSet(tileset : String,dest : String, tileIDs : Set<Int>) {
     val inputMap = File(tileset)
     if (!inputMap.exists()) {
         throw IllegalArgumentException("TileSet ${inputMap.absolutePath} does not exist")
@@ -59,7 +61,7 @@ fun loadTileSet(tileset : String,dest : String, tileIDs : Set<String>) {
                     skip--
                 } else if (regex.matches(line)) {
                     val v = regex.matchEntire(line)!!.groups.get(1)!!.value
-                    if (tileIDs.contains(v)) {
+                    if (tileIDs.contains(Integer.parseInt(v))) {
                         w.write(line)
                         w.newLine()
                     } else {
@@ -83,7 +85,7 @@ class MapHandler : ContentHandler {
     var inCSVData : Boolean = false
     var sb = StringBuffer()
 
-    val tileIDs = HashSet<String>()
+    val tileIDs = HashSet<Int>()
 
     override fun endDocument() {
 
@@ -92,7 +94,9 @@ class MapHandler : ContentHandler {
     override fun endElement(p0: String?, p1: String?, p2: String?) {
         if (inCSVData){
            val s=sb.toString()
-           tileIDs.addAll(s.split(',','\r','\n',' ').filter { i -> i.length >0 })
+            // this only works because we assume one tileset, with a global id starting at one
+           val ids = s.split(',','\r','\n',' ').filter { i -> i.length >0 && !i.equals("0") }
+            tileIDs.addAll(ids.stream().map { i->Integer.parseInt(i)-1 }.collect(Collectors.toList()))
 
         }
         inCSVData=false
