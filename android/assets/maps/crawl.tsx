@@ -74,18 +74,33 @@
   <image width="32" height="32" source="./dc-dngn/floor/grass/grass1.png"/>
  </tile>
  <tile id="226">
+  <properties>
+   <property name="power" type="int" value="10"/>
+  </properties>
   <image width="32" height="32" source="./dc-dngn/wall/brick_dark0.png"/>
  </tile>
  <tile id="227">
+  <properties>
+   <property name="power" type="int" value="10"/>
+  </properties>
   <image width="32" height="32" source="./dc-dngn/wall/brick_dark1.png"/>
  </tile>
  <tile id="228">
+  <properties>
+   <property name="power" type="int" value="10"/>
+  </properties>
   <image width="32" height="32" source="./dc-dngn/wall/brick_dark2.png"/>
  </tile>
  <tile id="229">
+  <properties>
+   <property name="power" type="int" value="10"/>
+  </properties>
   <image width="32" height="32" source="./dc-dngn/wall/brick_dark3.png"/>
  </tile>
  <tile id="230">
+  <properties>
+   <property name="power" type="int" value="10"/>
+  </properties>
   <image width="32" height="32" source="./dc-dngn/wall/brick_dark4.png"/>
  </tile>
  <tile id="397">
@@ -125,15 +140,27 @@
   <image width="32" height="32" source="./dc-dngn/water/dngn_shoals_deep_water4_bubbles.png"/>
  </tile>
  <tile id="514">
+  <properties>
+   <property name="power" type="int" value="5"/>
+  </properties>
   <image width="32" height="32" source="./dc-dngn/dngn_closed_door.png"/>
  </tile>
  <tile id="536">
+  <properties>
+   <property name="power" type="int" value="5"/>
+  </properties>
   <image width="32" height="32" source="./dc-dngn/gate_closed_left.png"/>
  </tile>
  <tile id="537">
+  <properties>
+   <property name="power" type="int" value="5"/>
+  </properties>
   <image width="32" height="32" source="./dc-dngn/gate_closed_middle.png"/>
  </tile>
  <tile id="538">
+  <properties>
+   <property name="power" type="int" value="5"/>
+  </properties>
   <image width="32" height="32" source="./dc-dngn/gate_closed_right.png"/>
  </tile>
 </tileset>

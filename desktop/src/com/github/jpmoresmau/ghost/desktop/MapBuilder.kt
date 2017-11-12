@@ -52,27 +52,28 @@ fun loadTileSet(tileset : String,dest : String, tileIDs : Set<Int>) {
         destFile.delete()
 
         val regex= Regex("\\s*<tile id=\"(\\d+)\">")
-        var skip=0
+        var skip=false
         val w=BufferedWriter(OutputStreamWriter(FileOutputStream(destFile),StandardCharsets.UTF_8))
         try {
             for (line in Files.readAllLines(inputMap.toPath(), StandardCharsets.UTF_8)) {
                 //println (line)
-                if (skip > 0) {
-                    skip--
-                } else if (regex.matches(line)) {
+                if (regex.matches(line)) {
+                    skip=false
                     val v = regex.matchEntire(line)!!.groups.get(1)!!.value
                     if (tileIDs.contains(Integer.parseInt(v))) {
                         w.write(line)
                         w.newLine()
                     } else {
-                        skip = 2
+                        skip = true
                     }
-                } else if (line.trim().startsWith("<image")) {
+                } else if (!skip && line.trim().startsWith("<image")) {
                     w.write(line.replace("../assets/crawl-tiles Oct-5-2010/crawl-tiles Oct-5-2010/", "./"))
                     w.newLine()
-                } else {
+                } else if (!skip) {
                     w.write(line)
                     w.newLine()
+                } else if (line.trim().startsWith("</tile>")){
+                    skip=false
                 }
             }
         } finally {
