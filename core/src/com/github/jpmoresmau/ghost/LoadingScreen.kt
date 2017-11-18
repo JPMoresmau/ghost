@@ -11,7 +11,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 /**
  * Created by jpmoresmau on 12/11/2017.
  */
-class LoadingScreen (private val handle: GhostHandle) : Screen {
+class LoadingScreen (private val assets: GhostAssets) : Screen {
 
     var font: BitmapFont = BitmapFont()
 
@@ -22,21 +22,21 @@ class LoadingScreen (private val handle: GhostHandle) : Screen {
     }
 
     override fun render(delta: Float) {
-        if (handle.manager.update()){
-            handle.game.screen=MainMenuScreen(handle)
+        if (assets.manager.update()){
+            assets.game.screen=MainMenuScreen(assets)
             dispose()
         } else {
-            val p=handle.manager.progress
+            val p= assets.manager.progress
             val percent = (p*100).toInt()
             Gdx.gl.glClearColor(0f, 0f, 0.2f, 1f)
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
             camera.update()
-            handle.batch.projectionMatrix = camera.combined
+            assets.batch.projectionMatrix = camera.combined
 
-            handle.batch.begin()
-            font.draw(handle.batch, "Loading $percent%", 100f, 150f)
-            handle.batch.end()
+            assets.batch.begin()
+            font.draw(assets.batch, "Loading $percent%", 100f, 150f)
+            assets.batch.end()
         }
 
     }

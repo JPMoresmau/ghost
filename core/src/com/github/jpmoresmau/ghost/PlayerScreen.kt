@@ -14,19 +14,19 @@ class PlayerScreen (private val state: GhostState) : Screen {
 
     private val camera = OrthographicCamera()
 
-    private val stateLayout = GlyphLayout(state.handle.font,"${state.playerState}")
-    private val powerLayout = GlyphLayout(state.handle.font,"Power: ${state.playerPower}")
-    private val experienceLayout = GlyphLayout(state.handle.font,"Experience: ${state.playerExperience}")
+    private val stateLayout = GlyphLayout(state.assets.font,"${state.playerAvatar.label}")
+    private val powerLayout = GlyphLayout(state.assets.font,"Power: ${state.playerPower}")
+    private val experienceLayout = GlyphLayout(state.assets.font,"Experience: ${state.playerExperience}")
 
     init {
         camera.setToOrtho(false, 800f, 480f)
 
-        state.handle.playerMusic.isLooping = true
-        state.handle.playerMusic.volume = 0.2f
+        state.assets.playerMusic.isLooping = true
+        state.assets.playerMusic.volume = 0.2f
 
         Gdx.input.inputProcessor= object : InputAdapter(){
             override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-                state.handle.game.screen = WorldScreen(state)
+                state.assets.game.screen = WorldScreen(state)
                 dispose()
                 return true
             }
@@ -37,19 +37,19 @@ class PlayerScreen (private val state: GhostState) : Screen {
     override fun render(delta: Float) {
 
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
 
         camera.update()
-        state.handle.batch.projectionMatrix = camera.combined
+        state.assets.batch.projectionMatrix = camera.combined
 
-        state.handle.batch.begin()
-        state.handle.batch.draw(state.handle.paper, 0f, 0f, camera.viewportWidth, camera.viewportHeight);
+        state.assets.batch.begin()
+        state.assets.batch.draw(state.assets.paper, 0f, 0f, camera.viewportWidth, camera.viewportHeight);
 
-        state.handle.button(camera,true,300f,stateLayout)
-        state.handle.button(camera,true,200f,powerLayout)
-        state.handle.button(camera,true,100f,experienceLayout)
+        state.assets.button(camera,true,300f,stateLayout)
+        state.assets.button(camera,true,200f,powerLayout)
+        state.assets.button(camera,true,100f,experienceLayout)
 
-        state.handle.batch.end()
+        state.assets.batch.end()
 
     }
 
@@ -57,7 +57,7 @@ class PlayerScreen (private val state: GhostState) : Screen {
     override fun show() {
         // start the playback of the background music
         // when the screen is shown
-        state.handle.playerMusic.play()
+        state.assets.playerMusic.play()
 
     }
 
@@ -66,15 +66,15 @@ class PlayerScreen (private val state: GhostState) : Screen {
     }
 
     override fun pause() {
-        state.handle.playerMusic.pause()
+        state.assets.playerMusic.pause()
     }
 
     override fun resume() {
-        state.handle.playerMusic.play()
+        state.assets.playerMusic.play()
     }
 
     override fun hide() {
-        state.handle.playerMusic.stop()
+        state.assets.playerMusic.stop()
     }
 
     override fun dispose() {

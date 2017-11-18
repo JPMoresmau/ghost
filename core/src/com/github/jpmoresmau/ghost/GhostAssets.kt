@@ -15,7 +15,7 @@ import com.badlogic.gdx.math.Rectangle
 /**
  * Created by jpmoresmau on 04/11/2017.
  */
-class GhostHandle(val game : GhostGame) {
+class GhostAssets(val game : GhostGame) {
     val manager = AssetManager()
 
     val batch = SpriteBatch()
@@ -35,7 +35,7 @@ class GhostHandle(val game : GhostGame) {
         manager.load("music/Lost_Time.mp3",Music::class.java)
 
         manager.load("sprites/wraith.png",Texture::class.java)
-
+        manager.load("sprites/rat.png",Texture::class.java)
 
         manager.load("maps/castle1.tmx", TiledMap::class.java)
 
@@ -70,6 +70,8 @@ class GhostHandle(val game : GhostGame) {
 
     val wraith : Texture
         get() =  manager.get("sprites/wraith.png",Texture::class.java)
+    val rat : Texture
+        get() =  manager.get("sprites/rat.png",Texture::class.java)
 
     val castle1 : TiledMap
      get() = manager.get("maps/castle1.tmx", TiledMap::class.java)

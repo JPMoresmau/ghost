@@ -3,10 +3,10 @@ package com.github.jpmoresmau.ghost
 import com.badlogic.gdx.Game
 
 class GhostGame : Game() {
-    private var entry : GhostHandle? = null
+    private var entry : GhostAssets? = null
 
     override fun create() {
-        val e = GhostHandle(this)
+        val e = GhostAssets(this)
         entry = e
         this.setScreen(LoadingScreen(e))
     }

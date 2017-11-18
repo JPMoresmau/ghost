@@ -7,16 +7,12 @@ import com.badlogic.gdx.Screen
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g2d.Sprite
-import com.badlogic.gdx.maps.tiled.TmxMapLoader
+import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector3
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.math.Vector2
 import cz.tchalupnik.libgdx.Toast
-import java.util.*
 
 
 /**
@@ -26,12 +22,10 @@ class WorldScreen (private val state: GhostState) : Screen {
 
     private val camera = OrthographicCamera()
 
-    private val renderer = OrthogonalTiledMapRenderer(state.handle.castle1, 1/32f)
-
-    private val playerSprite = Sprite(state.handle.wraith)
+    private val renderer = OrthogonalTiledMapRenderer(state.assets.castle1, 1/32f)
 
     private val toastFactory = Toast.ToastFactory.Builder()
-            .font(state.handle.font)
+            .font(state.assets.font)
             .backgroundColor(Color.BLACK)
             .margin(5)
             .build()
@@ -42,10 +36,10 @@ class WorldScreen (private val state: GhostState) : Screen {
         camera.setToOrtho(false, 25f, 15f)
         renderer.setView(camera)
 
+
         //playerSprite.setScale(1/32f)
-        playerSprite.setSize(1f,1f)
-        state.handle.worldMusic.isLooping = true
-        state.handle.worldMusic.volume = 0.05f
+        state.assets.worldMusic.isLooping = true
+        state.assets.worldMusic.volume = 0.05f
 
         Gdx.input.inputProcessor=TouchAdapter()
     }
@@ -94,7 +88,7 @@ class WorldScreen (private val state: GhostState) : Screen {
     override fun render(delta: Float) {
 
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
 
         val effectiveViewportWidth = camera.viewportWidth * camera.zoom
         val effectiveViewportHeight = camera.viewportHeight * camera.zoom
@@ -110,13 +104,20 @@ class WorldScreen (private val state: GhostState) : Screen {
 
         val batch = renderer.batch
         batch.begin()
-        playerSprite.setPosition(state.playerPosition.x,state.playerPosition.y)
-        playerSprite.draw(batch)
-
+        drawAvatar(batch,state.playerAvatar,state.playerPosition)
+        for((pos,npc) in state.npcs){
+            drawAvatar(batch,npc.avatar,pos)
+        }
         batch.end()
 
         Toast.renderToasts(delta,moveMessages)
 
+    }
+
+    fun drawAvatar(batch: Batch, avatar:GhostState. Avatar,pos:Vector2){
+        avatar.sprite.setSize(1f,1f)
+        avatar.sprite.setPosition(pos.x,pos.y)
+        avatar.sprite.draw(batch)
     }
 
     fun move(touchPos : Vector3) : Boolean{
@@ -134,16 +135,13 @@ class WorldScreen (private val state: GhostState) : Screen {
         }
         if (newPos != state.playerPosition) {
             //Gdx.app.log("WorldScreen","$touchPos : ${state.playerPosition} -> $newPos")
-            val mr = state.canPass(newPos,renderer.map)
+            val mr = state.move(newPos,renderer.map)
             when (mr) {
-                MoveOK -> state.playerPosition = newPos
-                is MoveInsufficientPower -> {
+                is InsufficientPower -> {
                     moveMessages.clear()
                     moveMessages.add(toastFactory.create("Insufficient power! (required: ${mr.power})", Toast.Length.SHORT))
 
                 }
-
-
             }
             return true
         }
@@ -152,7 +150,7 @@ class WorldScreen (private val state: GhostState) : Screen {
     }
 
     fun showPlayerScreen() {
-        state.handle.game.screen=PlayerScreen(state)
+        state.assets.game.screen=PlayerScreen(state)
         dispose()
     }
 
@@ -160,7 +158,7 @@ class WorldScreen (private val state: GhostState) : Screen {
     override fun show() {
         // start the playback of the background music
         // when the screen is shown
-        state.handle.worldMusic.play()
+        state.assets.worldMusic.play()
 
     }
 
@@ -169,18 +167,18 @@ class WorldScreen (private val state: GhostState) : Screen {
     }
 
     override fun pause() {
-        state.handle.worldMusic.pause()
+        state.assets.worldMusic.pause()
     }
 
     override fun resume() {
-        state.handle.worldMusic.play()
+        state.assets.worldMusic.play()
     }
 
     override fun hide() {
-        state.handle.worldMusic.stop()
+        state.assets.worldMusic.stop()
     }
 
     override fun dispose() {
-
+        renderer.dispose()
     }
 }
