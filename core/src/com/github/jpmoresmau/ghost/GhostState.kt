@@ -13,17 +13,17 @@ class GhostState (val handle:GhostHandle){
 
     var playerPower : Int = 1
 
-    fun canPass(pos : Vector2 ,map :TiledMap) : Boolean {
+    fun canPass(pos : Vector2 ,map :TiledMap) : MoveResult {
         for (l in map.layers.reversed()){
             val layer = l as TiledMapTileLayer
             val cell = layer.getCell(pos.x.toInt(),pos.y.toInt())
             if (cell!=null && cell.tile!=null) {
                 val pow = cell.tile.properties.get("power", 0, Int::class.java)
                 if (pow > playerPower) {
-                    return false
+                    return MoveInsufficientPower(pow)
                 }
             }
         }
-        return true
+        return MoveOK
     }
 }

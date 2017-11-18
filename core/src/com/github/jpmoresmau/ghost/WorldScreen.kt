@@ -3,6 +3,7 @@ package com.github.jpmoresmau.ghost
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.Screen
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
@@ -13,6 +14,8 @@ import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.math.Vector2
+import cz.tchalupnik.libgdx.Toast
+import java.util.*
 
 
 /**
@@ -25,6 +28,14 @@ class WorldScreen (private val state: GhostState) : Screen {
     private val renderer = OrthogonalTiledMapRenderer(state.handle.castle1, 1/32f)
 
     private val playerSprite = Sprite(state.handle.wraith)
+
+    private val toastFactory = Toast.ToastFactory.Builder()
+            .font(state.handle.font)
+            .backgroundColor(Color.BLACK)
+            .margin(5)
+            .build()
+
+    private val messages = mutableListOf<Toast>()
 
     init {
         camera.setToOrtho(false, 25f, 15f)
@@ -74,6 +85,15 @@ class WorldScreen (private val state: GhostState) : Screen {
 
         batch.end()
 
+        val it=messages.iterator()
+        while (it.hasNext()){
+            val t=it.next()
+            if (!t.render(delta)){
+                it.remove()
+            } else {
+                break;
+            }
+        }
 
     }
 
@@ -91,9 +111,10 @@ class WorldScreen (private val state: GhostState) : Screen {
             newPos.y-=1f;
         }
         //Gdx.app.log("WorldScreen","$touchPos : ${state.playerPosition} -> $newPos")
-        if (state.canPass(newPos,renderer.map)){
-           state.playerPosition=newPos
-        } else {
+        val mr = state.canPass(newPos,renderer.map)
+        when (mr) {
+            MoveOK -> state.playerPosition=newPos
+            is MoveInsufficientPower -> messages.add(toastFactory.create("Insufficient power! (required: ${mr.power})", Toast.Length.SHORT))
 
         }
 
@@ -104,6 +125,7 @@ class WorldScreen (private val state: GhostState) : Screen {
         // start the playback of the background music
         // when the screen is shown
         state.handle.worldMusic.play()
+
     }
 
     override fun resize(width: Int, height: Int) {
