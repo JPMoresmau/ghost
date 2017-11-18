@@ -13,6 +13,10 @@ class GhostState (val handle:GhostHandle){
 
     var playerPower : Int = 1
 
+    var playerExperience: Int = 0
+
+    var playerState : String = "Wraith"
+
     fun canPass(pos : Vector2 ,map :TiledMap) : MoveResult {
         for (l in map.layers.reversed()){
             val layer = l as TiledMapTileLayer
@@ -26,4 +30,6 @@ class GhostState (val handle:GhostHandle){
         }
         return MoveOK
     }
+
+
 }

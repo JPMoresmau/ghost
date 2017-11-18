@@ -16,8 +16,7 @@ import com.badlogic.gdx.math.Vector3
  */
 class MainMenuScreen (private val handle: GhostHandle) : Screen {
 
-    private val enabledButton = TextureRegion(handle.rpgElements,10,126,292,60)
-    private val disabledButton = TextureRegion(handle.rpgElements,10,360,292,60)
+
 
     private val camera = OrthographicCamera()
 
@@ -35,7 +34,7 @@ class MainMenuScreen (private val handle: GhostHandle) : Screen {
 
 
     override fun render(delta: Float) {
-        Gdx.gl.glClearColor(0f, 0f, 0.2f, 1f)
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
         camera.update()
@@ -44,12 +43,12 @@ class MainMenuScreen (private val handle: GhostHandle) : Screen {
         handle.batch.begin()
         handle.batch.draw(handle.paper, 0f, 0f, camera.viewportWidth, camera.viewportHeight);
 
-        handle.font64.draw(handle.batch, titleLayout, center(titleLayout.width.toInt()), 440f)
+        handle.font64.draw(handle.batch, titleLayout, handle.center(camera,titleLayout.width.toInt()), 440f)
 
-        val newRect = button(handle,true,260f,newLayout)
-        val continueRect = button(handle,false,160f,continueLayout)
+        val newRect = handle.button(camera,true,260f,newLayout)
+        val continueRect = handle.button(camera,false,160f,continueLayout)
 
-        val quitRect=button(handle,true,60f,quitLayout)
+        val quitRect=handle.button(camera,true,60f,quitLayout)
 
 
         handle.batch.end()
@@ -71,17 +70,6 @@ class MainMenuScreen (private val handle: GhostHandle) : Screen {
         }
     }
 
-    fun center(width: Int) : Float {
-        return (camera.viewportWidth - width)/2
-    }
-
-    fun button(state : GhostHandle, enabled : Boolean, y : Float, layout:GlyphLayout) : Rectangle {
-        val region= if (enabled) enabledButton else disabledButton
-        val x = center(region.regionWidth)
-        state.batch.draw(region, x, y)
-        state.font.draw(state.batch, layout, x+(region.regionWidth-layout.width)/2, y+45)
-        return Rectangle(x,y,region.regionWidth.toFloat(),region.regionHeight.toFloat())
-    }
 
     override fun show() {
         // start the playback of the background music
@@ -102,7 +90,7 @@ class MainMenuScreen (private val handle: GhostHandle) : Screen {
     }
 
     override fun hide() {
-
+        handle.mainMenuMusic.stop()
     }
 
     override fun dispose() {

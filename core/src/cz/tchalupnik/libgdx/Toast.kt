@@ -277,6 +277,22 @@ class Toast internal constructor(
                 }
             }
         }
+
     }
 
+
+    companion object {
+        fun renderToasts(delta: Float, messages : MutableList<Toast>){
+            val it=messages.iterator()
+            while (it.hasNext()){
+                val t=it.next()
+                if (!t.render(delta)){
+                    it.remove()
+                } else {
+                    break;
+                }
+            }
+        }
+    }
 }
+

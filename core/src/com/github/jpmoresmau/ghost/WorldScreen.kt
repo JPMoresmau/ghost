@@ -1,6 +1,7 @@
 package com.github.jpmoresmau.ghost
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.Screen
 import com.badlogic.gdx.graphics.Color
@@ -35,7 +36,7 @@ class WorldScreen (private val state: GhostState) : Screen {
             .margin(5)
             .build()
 
-    private val messages = mutableListOf<Toast>()
+    private val moveMessages = mutableListOf<Toast>()
 
     init {
         camera.setToOrtho(false, 25f, 15f)
@@ -56,8 +57,37 @@ class WorldScreen (private val state: GhostState) : Screen {
             camera.unproject(touchPos)
             touchPos.x = Math.floor(touchPos.x.toDouble()).toFloat()
             touchPos.y = Math.floor(touchPos.y.toDouble()).toFloat()
-            move(touchPos)
+            if (!move(touchPos)){
+                showPlayerScreen()
+            }
             return true
+        }
+
+        override fun keyDown(keycode: Int): Boolean {
+            when (keycode) {
+               Input.Keys.RIGHT -> {
+                   move(Vector3(state.playerPosition.x+1,state.playerPosition.y,0f))
+                   return true
+               }
+                Input.Keys.LEFT -> {
+                    move(Vector3(state.playerPosition.x-1,state.playerPosition.y,0f))
+                    return true
+                }
+                Input.Keys.UP -> {
+                    move(Vector3(state.playerPosition.x,state.playerPosition.y+1,0f))
+                    return true
+                }
+                Input.Keys.DOWN -> {
+                    move(Vector3(state.playerPosition.x,state.playerPosition.y-1,0f))
+                    return true
+                }
+                Input.Keys.SPACE -> {
+                    showPlayerScreen()
+                    return true
+                }
+            }
+
+            return false
         }
     }
 
@@ -85,19 +115,11 @@ class WorldScreen (private val state: GhostState) : Screen {
 
         batch.end()
 
-        val it=messages.iterator()
-        while (it.hasNext()){
-            val t=it.next()
-            if (!t.render(delta)){
-                it.remove()
-            } else {
-                break;
-            }
-        }
+        Toast.renderToasts(delta,moveMessages)
 
     }
 
-    fun move(touchPos : Vector3){
+    fun move(touchPos : Vector3) : Boolean{
 
         var newPos = Vector2(state.playerPosition)
         if (touchPos.x>newPos.x){
@@ -110,16 +132,30 @@ class WorldScreen (private val state: GhostState) : Screen {
         } else if  (touchPos.y<newPos.y){
             newPos.y-=1f;
         }
-        //Gdx.app.log("WorldScreen","$touchPos : ${state.playerPosition} -> $newPos")
-        val mr = state.canPass(newPos,renderer.map)
-        when (mr) {
-            MoveOK -> state.playerPosition=newPos
-            is MoveInsufficientPower -> messages.add(toastFactory.create("Insufficient power! (required: ${mr.power})", Toast.Length.SHORT))
+        if (newPos != state.playerPosition) {
+            //Gdx.app.log("WorldScreen","$touchPos : ${state.playerPosition} -> $newPos")
+            val mr = state.canPass(newPos,renderer.map)
+            when (mr) {
+                MoveOK -> state.playerPosition = newPos
+                is MoveInsufficientPower -> {
+                    moveMessages.clear()
+                    moveMessages.add(toastFactory.create("Insufficient power! (required: ${mr.power})", Toast.Length.SHORT))
 
+                }
+
+
+            }
+            return true
         }
-
+        return false
 
     }
+
+    fun showPlayerScreen() {
+        state.handle.game.screen=PlayerScreen(state)
+        dispose()
+    }
+
 
     override fun show() {
         // start the playback of the background music
@@ -141,7 +177,7 @@ class WorldScreen (private val state: GhostState) : Screen {
     }
 
     override fun hide() {
-
+        state.handle.worldMusic.stop()
     }
 
     override fun dispose() {

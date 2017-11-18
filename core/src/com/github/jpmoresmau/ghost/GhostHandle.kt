@@ -4,14 +4,12 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Music
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g2d.BitmapFont
-import com.badlogic.gdx.graphics.g2d.Sprite
-import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver
+import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.g2d.*
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
-
-
+import com.badlogic.gdx.math.Rectangle
 
 
 /**
@@ -34,6 +32,7 @@ class GhostHandle(val game : GhostGame) {
 
         manager.load("music/Something_Wicked.mp3",Music::class.java)
         manager.load("music/Heart_of_Nowhere.mp3",Music::class.java)
+        manager.load("music/Lost_Time.mp3",Music::class.java)
 
         manager.load("sprites/wraith.png",Texture::class.java)
 
@@ -65,10 +64,31 @@ class GhostHandle(val game : GhostGame) {
     val worldMusic : Music
         get() = manager.get("music/Heart_of_Nowhere.mp3", Music::class.java)
 
+    val playerMusic : Music
+        get() = manager.get("music/Lost_Time.mp3", Music::class.java)
+
+
     val wraith : Texture
         get() =  manager.get("sprites/wraith.png",Texture::class.java)
 
     val castle1 : TiledMap
      get() = manager.get("maps/castle1.tmx", TiledMap::class.java)
 
+
+    private val enabledButton : TextureRegion
+        get() = TextureRegion(rpgElements,10,126,292,60)
+    private val disabledButton : TextureRegion
+        get() = TextureRegion(rpgElements,10,360,292,60)
+
+    fun button(camera: OrthographicCamera, enabled : Boolean, y : Float, layout: GlyphLayout) : Rectangle {
+        val region= if (enabled) enabledButton else disabledButton
+        val x = center(camera,region.regionWidth)
+        batch.draw(region, x, y)
+        font.draw(batch, layout, x+(region.regionWidth-layout.width)/2, y+45)
+        return Rectangle(x,y,region.regionWidth.toFloat(),region.regionHeight.toFloat())
+    }
+
+    fun center(camera: OrthographicCamera, width: Int) : Float {
+        return (camera.viewportWidth - width)/2
+    }
 }
