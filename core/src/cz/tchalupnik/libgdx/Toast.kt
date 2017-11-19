@@ -103,6 +103,7 @@ class Toast internal constructor(
         timeToLive -= delta
 
         if (timeToLive < 0) {
+            dispose()
             return false
         }
 
@@ -111,21 +112,29 @@ class Toast internal constructor(
         renderer.rect(positionX, positionY, toastWidth.toFloat(), toastHeight.toFloat())
         //renderer.circle(positionX + toastWidth, positionY + toastHeight / 2, (toastHeight / 2).toFloat())
         renderer.end()
-
         spriteBatch.begin()
 
         if (timeToLive > 0 && opacity > 0.15) {
             if (timeToLive < fadingDuration) {
                 opacity = timeToLive / fadingDuration
             }
-
-            font.setColor(fontColor.r, fontColor.g, fontColor.b, fontColor.a * opacity)
-            font.draw(spriteBatch, msg, fontX, fontY, fontWidth.toFloat(), Align.center, true)
+            val c=Color(font.color)
+            try {
+                font.setColor(fontColor.r, fontColor.g, fontColor.b, fontColor.a * opacity)
+                font.draw(spriteBatch, msg, fontX, fontY, fontWidth.toFloat(), Align.center, true)
+            } finally {
+                font.color=c
+            }
         }
 
         spriteBatch.end()
 
         return true
+    }
+
+    fun dispose(){
+        spriteBatch.dispose()
+        renderer.dispose()
     }
 
     /**
