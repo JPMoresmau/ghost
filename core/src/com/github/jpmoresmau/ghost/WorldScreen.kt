@@ -136,17 +136,24 @@ class WorldScreen (private val state: GhostState) : Screen {
         if (newPos != state.playerPosition) {
             //Gdx.app.log("WorldScreen","$touchPos : ${state.playerPosition} -> $newPos")
             val mr = state.move(newPos,renderer.map)
-            when (mr) {
+            when (mr.mainResult) {
                 is InsufficientPower -> {
                     moveMessages.clear()
-                    moveMessages.add(toastFactory.create("Insufficient power! (required: ${mr.power})", Toast.Length.SHORT))
-
+                    moveMessages.add(toastFactory.create("Insufficient power! (required: ${mr.mainResult.power})", Toast.Length.SHORT))
                 }
             }
+            mr.sideResults.forEach(this::handleSideResult)
             return true
         }
         return false
 
+    }
+
+    private fun handleSideResult(ar:ActionResult){
+        when (ar){
+            PossessOK -> state.assets.whisperSound.play(0.7f)
+            LevelUp -> state.assets.sighSound.play(1f)
+        }
     }
 
     fun showPlayerScreen() {

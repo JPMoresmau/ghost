@@ -6,6 +6,8 @@ import com.badlogic.gdx.audio.Music
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver
+import com.badlogic.gdx.audio.Sound
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.*
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
@@ -33,6 +35,10 @@ class GhostAssets(val game : GhostGame) {
         manager.load("music/Something_Wicked.mp3",Music::class.java)
         manager.load("music/Heart_of_Nowhere.mp3",Music::class.java)
         manager.load("music/Lost_Time.mp3",Music::class.java)
+
+        manager.load("sounds/ghost-whispers.wav",Sound::class.java)
+        manager.load("sounds/ghost-sigh.wav",Sound::class.java)
+
 
         manager.load("sprites/wraith.png",Texture::class.java)
         manager.load("sprites/rat.png",Texture::class.java)
@@ -67,9 +73,15 @@ class GhostAssets(val game : GhostGame) {
     val playerMusic : Music
         get() = manager.get("music/Lost_Time.mp3", Music::class.java)
 
+    val whisperSound : Sound
+        get() = manager.get("sounds/ghost-whispers.wav", Sound::class.java)
+
+    val sighSound : Sound
+        get() = manager.get("sounds/ghost-sigh.wav", Sound::class.java)
 
     val wraith : Texture
         get() =  manager.get("sprites/wraith.png",Texture::class.java)
+
     val rat : Texture
         get() =  manager.get("sprites/rat.png",Texture::class.java)
 
@@ -86,6 +98,7 @@ class GhostAssets(val game : GhostGame) {
         val region= if (enabled) enabledButton else disabledButton
         val x = center(camera,region.regionWidth)
         batch.draw(region, x, y)
+        font.color= Color.WHITE
         font.draw(batch, layout, x+(region.regionWidth-layout.width)/2, y+45)
         return Rectangle(x,y,region.regionWidth.toFloat(),region.regionHeight.toFloat())
     }
