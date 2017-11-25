@@ -43,7 +43,8 @@ class MainMenuScreen (private val assets: GhostAssets) : Screen {
         assets.font64.draw(assets.batch, titleLayout, assets.center(camera,titleLayout.width.toInt()), 440f)
 
         val newRect = assets.button(camera,true,260f,newLayout)
-        val continueRect = assets.button(camera,false,160f,continueLayout)
+        val saveContent = assets.game.getSaveContent()
+        val continueRect = assets.button(camera,saveContent!=null,160f,continueLayout)
 
         val quitRect= assets.button(camera,true,60f,quitLayout)
 
@@ -60,6 +61,11 @@ class MainMenuScreen (private val assets: GhostAssets) : Screen {
                Gdx.app.exit()
             } else if (newRect.contains(touchPos.x.toFloat(), touchPos.y.toFloat())){
                 assets.game.screen = WorldScreen(GhostState(assets))
+                dispose()
+            } else if (saveContent!=null && continueRect.contains(touchPos.x.toFloat(), touchPos.y.toFloat())){
+                val state = GhostState(assets)
+                state.fromSave(saveContent)
+                assets.game.screen = WorldScreen(state)
                 dispose()
             }
 

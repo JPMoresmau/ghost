@@ -181,6 +181,7 @@ class WorldScreen (private val state: GhostState) : Screen {
 
     override fun hide() {
         state.assets.worldMusic.stop()
+        Gdx.app.log("WorldScreen","hide")
     }
 
     override fun dispose() {
