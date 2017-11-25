@@ -1,5 +1,6 @@
 package com.github.jpmoresmau.ghost
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
@@ -10,91 +11,107 @@ import com.badlogic.gdx.math.Vector2
  */
 class GhostState (val assets: GhostAssets){
 
-
     data class Avatar(val code:String,val label:String,val sprite:Sprite)
 
     data class NPC(val avatar: Avatar,val power:Int, val experience:Int)
 
-    val WRAITH=Avatar("wraith","Wraith",Sprite(assets.wraith))
+    private val WRAITH=Avatar("wraith","Wraith",Sprite(assets.wraith))
 
-    var playerPosition = Vector2(4f,21f)
+    private val defaultNPCs = mapOf( Vector2(6f,19f) to NPC(Avatar("rat","A huge rat",Sprite(assets.rat)),1,5))
 
-    var playerPower = 1
+    data class Player (
+        var position : Vector2,
 
-    var playerExperience = 0
+        var avatar : Avatar,
 
-    var playerAvatar = WRAITH
+        val npcs :HashMap<Vector2,NPC>,
 
-    var playerNPC : NPC? = null
+        val passed :HashSet<Vector2> = hashSetOf<Vector2>(),
 
-    val npcs = hashMapOf( Vector2(6f,19f) to NPC(Avatar("rat","A huge rat",Sprite(assets.rat)),1,5))
+        var power : Int = 1,
 
-    val passed = hashSetOf<Vector2>()
+        var experience : Int = 0,
 
-    fun canPass(pos : Vector2 ,map :TiledMap, sideResults:MutableList<ActionResult>) : ActionResult {
-        var r: ActionResult = MoveOK
+        var playerNPC : NPC? = null)
+
+    val player = Player(Vector2(4f,21f),WRAITH,HashMap(defaultNPCs))
+
+    private fun canPass(pos : Vector2 ,map :TiledMap, results:MutableList<ActionResult>) {
+        var requiredPower=0
         for (l in map.layers.reversed()){
             val layer = l as TiledMapTileLayer
             val cell = layer.getCell(pos.x.toInt(),pos.y.toInt())
             if (cell!=null && cell.tile!=null) {
                 val all =  cell.tile.properties.get("allowed", String::class.java)
-                if (all!=null && all.equals(playerAvatar.code)){
-                    if (passed.add(pos)) {
+                if (all!=null && all==player.avatar.code){
+                    if (!player.passed.contains(pos)) {
+                        results.add(Pass(pos))
                         val exp = cell.tile.properties.get("exp", 0, Int::class.java)
-                        incExperience(exp, sideResults)
+                        incExperience(exp, results)
                     }
-                    return MoveOK
+                    results.add(MoveOK(pos))
+                    return
                 }
                 val pow = cell.tile.properties.get("power", 0, Int::class.java)
-                if (pow > playerPower) {
-                    r = InsufficientPower(pow)
+                if (pow > player.power) {
+                    requiredPower=Math.max(requiredPower,pow)
                 }
-
             }
         }
-        return r
+        if (requiredPower>0){
+            results.add(InsufficientPower(requiredPower))
+        } else {
+            results.add(MoveOK(pos))
+        }
     }
 
-    fun move(newPos : Vector2 ,map :TiledMap) : ActionResults {
-        val npc = npcs.get(newPos)
-        val sideResults= mutableListOf<ActionResult>()
+    fun move(newPos : Vector2 ,map :TiledMap) : List<ActionResult> {
+        val npc = player.npcs.get(newPos)
+        val results= mutableListOf<ActionResult>()
         if (npc!=null){
-            if (npc.power>playerPower){
-                return ActionResults(InsufficientPower(npc.power),sideResults)
+            if (npc.power>player.power){
+                results.add(InsufficientPower(npc.power))
+                return results
             } else {
-                npcs.remove(newPos)
-                playerPosition = newPos
-                possess(npc,sideResults)
-                return ActionResults(MoveOK,sideResults)
+                results.add(MoveOK(newPos))
+                results.add(PossessOK(newPos))
+                incExperience(npc.experience,results)
+                processActions(results)
+                return results
             }
         }
-        val mr = canPass(newPos,map,sideResults)
-        when (mr) {
-            MoveOK -> playerPosition = newPos
-        }
-        return ActionResults(mr,sideResults)
-    }
-
-    private fun possess(npc:NPC, sideResults:MutableList<ActionResult>){
-        playerAvatar = npc.avatar
-
-        sideResults.add(PossessOK)
-        incExperience(npc.experience,sideResults)
-        playerNPC = NPC(npc.avatar,npc.power,0)
-
-    }
-
-    private fun incExperience(exp: Int, sideResults:MutableList<ActionResult>){
-        playerExperience+=exp
-        var up=false
-        while (playerExperience>=Math.pow(playerPower.toDouble(),2.0)*10){
-            playerPower++
-            up=true
-        }
-        if (up){
-            sideResults.add(LevelUp)
-        }
+        canPass(newPos,map,results)
+        processActions(results)
+        return results
     }
 
 
+    private fun incExperience(exp: Int, results:MutableList<ActionResult>){
+        results.add(Experience(exp))
+        var pow=player.power
+        while (player.experience+exp>=Math.pow(pow.toDouble(),2.0)*10){
+            pow++
+            results.add(LevelUp)
+        }
+    }
+
+    private fun processActions(results:List<ActionResult>){
+        results.fold(player, this::processAction)
+    }
+
+    private fun processAction(player:Player, result:ActionResult ) : Player{
+        when (result) {
+            is MoveOK -> player.position = result.newPos
+            is Pass -> player.passed.add(result.newPos)
+            is PossessOK -> {
+                val npc=player.npcs.remove(result.newPos)!!
+                player.avatar = npc.avatar
+                player.playerNPC = NPC(npc.avatar,npc.power,0)
+            }
+            is Experience -> player.experience+=result.inc
+            LevelUp -> player.power++
+        }
+        Gdx.app.log("State","result:${result},player:${player}")
+        return player
+    }
 }

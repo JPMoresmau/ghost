@@ -60,19 +60,19 @@ class WorldScreen (private val state: GhostState) : Screen {
         override fun keyDown(keycode: Int): Boolean {
             when (keycode) {
                Input.Keys.RIGHT -> {
-                   move(Vector3(state.playerPosition.x+1,state.playerPosition.y,0f))
+                   move(Vector3(state.player.position.x+1,state.player.position.y,0f))
                    return true
                }
                 Input.Keys.LEFT -> {
-                    move(Vector3(state.playerPosition.x-1,state.playerPosition.y,0f))
+                    move(Vector3(state.player.position.x-1,state.player.position.y,0f))
                     return true
                 }
                 Input.Keys.UP -> {
-                    move(Vector3(state.playerPosition.x,state.playerPosition.y+1,0f))
+                    move(Vector3(state.player.position.x,state.player.position.y+1,0f))
                     return true
                 }
                 Input.Keys.DOWN -> {
-                    move(Vector3(state.playerPosition.x,state.playerPosition.y-1,0f))
+                    move(Vector3(state.player.position.x,state.player.position.y-1,0f))
                     return true
                 }
                 Input.Keys.SPACE -> {
@@ -94,7 +94,7 @@ class WorldScreen (private val state: GhostState) : Screen {
         val effectiveViewportHeight = camera.viewportHeight * camera.zoom
 
 
-        camera.position.set(state.playerPosition.x,state.playerPosition.y,0f)
+        camera.position.set(state.player.position.x,state.player.position.y,0f)
         camera.position.x = MathUtils.clamp(camera.position.x, effectiveViewportWidth / 2f, 25 - effectiveViewportWidth / 2f)
         camera.position.y = MathUtils.clamp(camera.position.y, effectiveViewportHeight / 2f, 26 - effectiveViewportHeight / 2f)
 
@@ -104,8 +104,8 @@ class WorldScreen (private val state: GhostState) : Screen {
 
         val batch = renderer.batch
         batch.begin()
-        drawAvatar(batch,state.playerAvatar,state.playerPosition)
-        for((pos,npc) in state.npcs){
+        drawAvatar(batch,state.player.avatar,state.player.position)
+        for((pos,npc) in state.player.npcs){
             drawAvatar(batch,npc.avatar,pos)
         }
         batch.end()
@@ -122,7 +122,7 @@ class WorldScreen (private val state: GhostState) : Screen {
 
     fun move(touchPos : Vector3) : Boolean{
 
-        var newPos = Vector2(state.playerPosition)
+        var newPos = Vector2(state.player.position)
         if (touchPos.x>newPos.x){
             newPos.x+=1f;
         } else if  (touchPos.x<newPos.x){
@@ -133,16 +133,10 @@ class WorldScreen (private val state: GhostState) : Screen {
         } else if  (touchPos.y<newPos.y){
             newPos.y-=1f;
         }
-        if (newPos != state.playerPosition) {
+        if (newPos != state.player.position) {
             //Gdx.app.log("WorldScreen","$touchPos : ${state.playerPosition} -> $newPos")
-            val mr = state.move(newPos,renderer.map)
-            when (mr.mainResult) {
-                is InsufficientPower -> {
-                    moveMessages.clear()
-                    moveMessages.add(toastFactory.create("Insufficient power! (required: ${mr.mainResult.power})", Toast.Length.SHORT))
-                }
-            }
-            mr.sideResults.forEach(this::handleSideResult)
+            val results = state.move(newPos,renderer.map)
+            results.forEach(this::handleSideResult)
             return true
         }
         return false
@@ -151,8 +145,12 @@ class WorldScreen (private val state: GhostState) : Screen {
 
     private fun handleSideResult(ar:ActionResult){
         when (ar){
-            PossessOK -> state.assets.whisperSound.play(0.7f)
+            is PossessOK -> state.assets.whisperSound.play(0.7f)
             LevelUp -> state.assets.sighSound.play(1f)
+            is InsufficientPower -> {
+                moveMessages.clear()
+                moveMessages.add(toastFactory.create("Insufficient power! (required: ${ar.power})", Toast.Length.SHORT))
+            }
         }
     }
 

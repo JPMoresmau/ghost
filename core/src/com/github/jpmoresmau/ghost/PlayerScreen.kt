@@ -14,9 +14,9 @@ class PlayerScreen (private val state: GhostState) : Screen {
 
     private val camera = OrthographicCamera()
 
-    private val stateLayout = GlyphLayout(state.assets.font,"${state.playerAvatar.label}")
-    private val powerLayout = GlyphLayout(state.assets.font,"Power: ${state.playerPower}")
-    private val experienceLayout = GlyphLayout(state.assets.font,"Experience: ${state.playerExperience}")
+    private val stateLayout = GlyphLayout(state.assets.font,"${state.player.avatar.label}")
+    private val powerLayout = GlyphLayout(state.assets.font,"Power: ${state.player.power}")
+    private val experienceLayout = GlyphLayout(state.assets.font,"Experience: ${state.player.experience}")
 
     init {
         camera.setToOrtho(false, 800f, 480f)
