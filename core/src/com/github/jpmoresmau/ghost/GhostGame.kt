@@ -43,7 +43,7 @@ class GhostGame : Game() {
 
     fun saveContent(save : String) {
         if (Gdx.files.isLocalStorageAvailable) {
-            Gdx.app.log("Game","Path is ${Gdx.files.localStoragePath}")
+            //Gdx.app.log("Game","Path is ${Gdx.files.localStoragePath}")
             val handle = Gdx.files.local("save.json")
             handle.writeString(save,false)
 

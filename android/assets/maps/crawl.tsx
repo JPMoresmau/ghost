@@ -99,8 +99,6 @@
  </tile>
  <tile id="230">
   <properties>
-   <property name="allowed" value="rat"/>
-   <property name="exp" type="int" value="5"/>
    <property name="power" type="int" value="10"/>
   </properties>
   <image width="32" height="32" source="./dc-dngn/wall/brick_dark4.png"/>
@@ -140,6 +138,9 @@
  </tile>
  <tile id="431">
   <image width="32" height="32" source="./dc-dngn/water/dngn_shoals_deep_water4_bubbles.png"/>
+ </tile>
+ <tile id="461">
+  <image width="32" height="32" source="./dc-dngn/altars/dngn_altar.png"/>
  </tile>
  <tile id="514">
   <properties>

@@ -1,6 +1,8 @@
 package com.github.jpmoresmau.ghost
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.Sprite
+import com.badlogic.gdx.maps.MapProperties
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.math.Vector2
@@ -14,13 +16,9 @@ class GhostState (val assets: GhostAssets){
         assets.game.state=this
     }
 
-    data class Avatar(val code:String,val label:String,val sprite:Sprite)
-
-    data class NPC(val avatar: Avatar,val power:Int, val experience:Int)
+    private val items = GhostItems(assets)
 
     private val WRAITH=Avatar("wraith","Wraith",Sprite(assets.wraith))
-
-    private val defaultNPCs = mapOf( Vector2(6f,19f) to NPC(Avatar("rat","A huge rat",Sprite(assets.rat)),1,5))
 
     data class Player (
             val position : Vector2,
@@ -39,27 +37,26 @@ class GhostState (val assets: GhostAssets){
 
             val actions : List<ActionResult> = listOf<ActionResult>())
 
-    var player = Player(Vector2(4f,21f),WRAITH,HashMap(defaultNPCs))
+    var player = Player(Vector2(4f,21f),WRAITH,HashMap(items.defaultNPCs))
 
     private fun canPass(pos : Vector2 ,map :TiledMap, results:MutableList<ActionResult>) {
         var requiredPower=0
-        for (l in map.layers.reversed()){
-            val layer = l as TiledMapTileLayer
-            val cell = layer.getCell(pos.x.toInt(),pos.y.toInt())
-            if (cell!=null && cell.tile!=null) {
-                val all =  cell.tile.properties.get("allowed", String::class.java)
-                if (all!=null && all==player.avatar.code){
-                    if (!player.passed.contains(pos)) {
-                        results.add(Pass(pos))
-                        val exp = cell.tile.properties.get("exp", 0, Int::class.java)
-                        incExperience(exp, results)
+        var all= items.passAllowed[pos]
+        if (all!=null && all.npc==player.avatar.code){
+            if (!player.passed.contains(pos)) {
+                results.add(Pass(pos))
+                incExperience(all.experience, results)
+            }
+        } else {
+            for (l in map.layers.reversed()) {
+                val layer = l as TiledMapTileLayer
+                val cell = layer.getCell(pos.x.toInt(), pos.y.toInt())
+
+                if (cell != null && cell.tile != null) {
+                    val pow = cell.tile.properties.get("power", 0, Int::class.java)
+                    if (pow > player.power) {
+                        requiredPower = Math.max(requiredPower, pow)
                     }
-                    results.add(MoveOK(pos))
-                    return
-                }
-                val pow = cell.tile.properties.get("power", 0, Int::class.java)
-                if (pow > player.power) {
-                    requiredPower=Math.max(requiredPower,pow)
                 }
             }
         }
@@ -67,6 +64,12 @@ class GhostState (val assets: GhostAssets){
             results.add(InsufficientPower(requiredPower))
         } else {
             results.add(MoveOK(pos))
+        }
+    }
+
+    fun debugMapProperties(props : MapProperties){
+        for (k in props.keys){
+            Gdx.app.log("State","$k: ${props.get(k)}")
         }
     }
 
@@ -79,13 +82,18 @@ class GhostState (val assets: GhostAssets){
                 return results
             } else {
                 results.add(MoveOK(newPos))
-                results.add(PossessOK(newPos))
+                results.add(PossessOK(player.position,newPos))
                 incExperience(npc.experience,results)
                 processActions(results)
                 return results
             }
         }
         canPass(newPos,map,results)
+        val mmsg=items.messages[newPos]
+        //Gdx.app.log("State","$newPos: $mmsg")
+        if (mmsg != null){
+            results.add(Message(mmsg))
+        }
         processActions(results)
         return results
     }
@@ -115,8 +123,13 @@ class GhostState (val assets: GhostAssets){
             is MoveOK -> pl2 = player.copy(position= result.newPos)
             is Pass -> pl2 = player.copy(passed=player.passed.plus(result.newPos))
             is PossessOK -> {
-                val npc=player.npcs.get(result.newPos)!!
-                pl2 = player.copy(avatar=npc.avatar,playerNPC = npc.copy(experience = 0),npcs = player.npcs.minus(result.newPos))
+                val npc=player.npcs[result.newPos]!!
+                var newNpcs=player.npcs.minus(result.newPos)
+                if (player.playerNPC!=null){
+                    newNpcs=newNpcs.plus(Pair(result.oldPos,player.playerNPC))
+                }
+
+                pl2 = player.copy(avatar=npc.avatar,playerNPC = npc.copy(experience = 0),npcs = newNpcs)
             }
             is Experience -> pl2 = player.copy(experience=player.experience+result.inc)
             LevelUp -> pl2=player.copy(power=player.power+1)

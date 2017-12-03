@@ -42,6 +42,7 @@ class GhostAssets(val game : GhostGame) {
 
         manager.load("sprites/wraith.png",Texture::class.java)
         manager.load("sprites/rat.png",Texture::class.java)
+        manager.load("sprites/maid.png",Texture::class.java)
 
         manager.load("maps/castle1.tmx", TiledMap::class.java)
 
@@ -84,6 +85,9 @@ class GhostAssets(val game : GhostGame) {
 
     val rat : Texture
         get() =  manager.get("sprites/rat.png",Texture::class.java)
+
+    val maid : Texture
+        get() =  manager.get("sprites/maid.png",Texture::class.java)
 
     val castle1 : TiledMap
      get() = manager.get("maps/castle1.tmx", TiledMap::class.java)

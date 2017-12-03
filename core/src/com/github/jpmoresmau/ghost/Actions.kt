@@ -17,10 +17,12 @@ import javax.swing.Action
 sealed class ActionResult
 
 data class MoveOK(val newPos : Vector2) : ActionResult()
-data class PossessOK(val newPos : Vector2): ActionResult()
+data class PossessOK(val oldPos : Vector2, val newPos : Vector2): ActionResult()
 data class InsufficientPower(val power: Int) : ActionResult()
 data class Experience(val inc: Int) : ActionResult()
 data class Pass(val newPos: Vector2) : ActionResult()
+
+data class Message(val message : String) : ActionResult()
 
 object LevelUp: ActionResult()
 
@@ -43,10 +45,16 @@ fun toJSON(r:ActionResult,w:Json){
     w.writeObjectStart()
     when (r){
         is MoveOK -> w.writeValue("MoveOK",r.newPos)
-        is PossessOK -> w.writeValue("PossessOK",r.newPos)
+        is PossessOK -> {
+            w.writeValue("PossessOK",true)
+            w.writeValue("oldPos",r.oldPos)
+            w.writeValue("newPos",r.newPos)
+
+        }
         is Experience -> w.writeValue("Experience",r.inc)
         is InsufficientPower -> w.writeValue("InsufficientPower",r.power)
         is Pass -> w.writeValue("Pass",r.newPos)
+        is Message -> w.writeValue("Message",r.message)
         LevelUp -> w.writeValue("LevelUp",true)
     }
     w.writeObjectEnd()
@@ -66,7 +74,9 @@ fun fromJSON(v:JsonValue) : List<ActionResult>{
             }
             val mp = v2.get("PossessOK")
             if (mp!=null) {
-                l.add(PossessOK(Vector2(mp.getFloat("x"),mp.getFloat("y"))))
+                val oldP=v2.get("oldPos")
+                val newP=v2.get("newPos")
+                l.add(PossessOK(Vector2(oldP.getFloat("x"),oldP.getFloat("y")),Vector2(newP.getFloat("x"),newP.getFloat("y"))))
             }
             val me = v2.get("Experience")
             if (me!=null) {
@@ -79,6 +89,10 @@ fun fromJSON(v:JsonValue) : List<ActionResult>{
             val ms = v2.get("Pass")
             if (ms!=null) {
                 l.add(Pass(Vector2(ms.getFloat("x"),ms.getFloat("y"))))
+            }
+            val mmsg = v2.get("Message")
+            if (mmsg!=null) {
+                l.add(Message(mmsg.asString()))
             }
             val ml = v2.get("LevelUp")
             if (ml!=null) {

@@ -24,13 +24,23 @@ class WorldScreen (private val state: GhostState) : Screen {
 
     private val renderer = OrthogonalTiledMapRenderer(state.assets.castle1, 1/32f)
 
-    private val toastFactory = Toast.ToastFactory.Builder()
+    private val moveToastF = Toast.ToastFactory.Builder()
             .font(state.assets.font)
             .backgroundColor(Color.BLACK)
             .margin(5)
+            .positionY(100f)
             .build()
 
+    private val messageToastF = Toast.ToastFactory.Builder()
+            .font(state.assets.font)
+            .backgroundColor(Color.BLACK)
+            .margin(5)
+            .positionY(50f)
+            .build()
+
+
     private val moveMessages = mutableListOf<Toast>()
+    private val otherMessages = mutableListOf<Toast>()
 
     init {
         camera.setToOrtho(false, 25f, 15f)
@@ -110,11 +120,12 @@ class WorldScreen (private val state: GhostState) : Screen {
         }
         batch.end()
 
-        Toast.renderToasts(delta,moveMessages)
+        Toast.renderToasts(delta, moveMessages)
+        Toast.renderToasts(delta, otherMessages)
 
     }
 
-    fun drawAvatar(batch: Batch, avatar:GhostState. Avatar,pos:Vector2){
+    fun drawAvatar(batch: Batch, avatar:Avatar,pos:Vector2){
         avatar.sprite.setSize(1f,1f)
         avatar.sprite.setPosition(pos.x,pos.y)
         avatar.sprite.draw(batch)
@@ -148,9 +159,14 @@ class WorldScreen (private val state: GhostState) : Screen {
             is PossessOK -> state.assets.whisperSound.play(0.7f)
             LevelUp -> state.assets.sighSound.play(1f)
             is InsufficientPower -> {
-                moveMessages.clear()
-                moveMessages.add(toastFactory.create("Insufficient power! (required: ${ar.power})", Toast.Length.SHORT))
+                moveMessages.clear();
+                moveMessages.add(moveToastF.create("Insufficient power! (required: ${ar.power})", Toast.Length.SHORT))
             }
+            is Message -> {
+                otherMessages.clear()
+                otherMessages.add(messageToastF.create(ar.message, Toast.Length.SHORT))
+            }
+
         }
     }
 
@@ -181,7 +197,7 @@ class WorldScreen (private val state: GhostState) : Screen {
 
     override fun hide() {
         state.assets.worldMusic.stop()
-        Gdx.app.log("WorldScreen","hide")
+        //Gdx.app.log("WorldScreen","hide")
     }
 
     override fun dispose() {
